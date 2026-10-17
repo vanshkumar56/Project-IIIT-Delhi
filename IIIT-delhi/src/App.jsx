@@ -19,7 +19,9 @@ import MentorDashboard from './pages/mentor/MentorDashboard.jsx'
 import AlumniLogin1 from './pages/alumni/AlumniLogin1.jsx'
 import AlumniLogin2 from './pages/alumni/AlumniLogin2.jsx'
 import AlumniDashboard from './pages/alumni/AlumniDashboard.jsx'
-
+import Compete from "./pages/student/Compete";
+import Learning from "./pages/student/Learning";
+import MentorShip from "./pages/student/Mentorship";
 function App() {
   return (
     <Routes>
@@ -36,7 +38,18 @@ function App() {
       <Route path="/student/step-3" element={<StudentStep3 />} />
       <Route path="/student/step-4" element={<StudentStep4 />} />
       <Route path="/student/dashboard" element={<StudentDashboard />} />
-
+      <Route
+  path="/student/competitions"
+  element={<Compete />}
+/>
+<Route
+  path="/student/learning"
+  element={<Learning />}
+/>
+<Route
+  path="/student/mentorship"
+  element={<MentorShip />}
+/>
       {/* Mentor flow */}
       <Route path="/mentor/login-1" element={<MentorLogin1 />} />
       <Route path="/mentor/login-2" element={<MentorLogin2 />} />
