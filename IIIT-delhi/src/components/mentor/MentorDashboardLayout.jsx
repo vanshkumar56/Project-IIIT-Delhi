@@ -4,7 +4,7 @@ import {
   Settings, Search, Bell, ChevronDown, LogOut, Menu, X, GraduationCap
 } from "lucide-react";
 import { useState } from "react";
-import "../../styles/mentor/MentorDashboard.css";
+import "../../styles/MentorDashboard.css";
 
 const navigation = [
   { label: "Overview", path: "/mentor/dashboard", icon: LayoutDashboard },
