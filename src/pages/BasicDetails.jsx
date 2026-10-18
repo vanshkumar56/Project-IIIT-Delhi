@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   GraduationCap,
@@ -44,17 +44,27 @@ function BasicDetails() {
 
   const [selectedRole, setSelectedRole] = useState("student");
   const [loading, setLoading] = useState(false);
+  const timerRef = useRef(null);
 
   const userName = location.state?.name || "there";
 
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
   const handleContinue = () => {
     const roleConfig = ROLES.find((r) => r.id === selectedRole);
-    if (!roleConfig) return;
+    if (!roleConfig || loading) return;
 
     setLoading(true);
-    window.setTimeout(() => {
+    timerRef.current = window.setTimeout(() => {
       navigate(roleConfig.path, {
-        state: location.state,
+        state: {
+          ...location.state,
+          role: selectedRole,
+        },
       });
     }, 380);
   };
@@ -62,9 +72,10 @@ function BasicDetails() {
   return (
     <main className="details-page">
       <div className="details-modal-container">
-        <div className="details-side-banner">
+        {/* Left Visual Brand Banner */}
+        <aside className="details-side-banner">
           <img
-            src="blob:https://chatgpt.com/56aad66c-0768-4824-8d5a-3f2c37ba355e"
+            src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1000&q=80"
             alt="Students collaborating"
             className="details-banner-img"
           />
@@ -80,16 +91,21 @@ function BasicDetails() {
               <strong>UniSkills</strong>
             </button>
           </div>
-        </div>
+        </aside>
 
+        {/* Right Interaction Content */}
         <section className="details-modal-content">
-          <div className="details-header-wrap">
+          <header className="details-header-wrap">
             <div className="details-step-pill">STEP 2 OF 2</div>
             <h2>Welcome, {userName}!</h2>
             <p>Select your primary role to customize your workspace.</p>
-          </div>
+          </header>
 
-          <div className="details-cards-grid" role="radiogroup" aria-label="Choose your role">
+          <div
+            className="details-cards-grid"
+            role="radiogroup"
+            aria-label="Choose your role"
+          >
             {ROLES.map((role) => {
               const Icon = role.icon;
               const isSelected = selectedRole === role.id;
@@ -123,7 +139,7 @@ function BasicDetails() {
                     </div>
                   </div>
 
-                  <div className="details-check-circle">
+                  <div className="details-check-circle" aria-hidden="true">
                     <Check size={14} />
                   </div>
                 </div>
@@ -132,6 +148,16 @@ function BasicDetails() {
           </div>
 
           <div className="details-actions">
+            <button
+              type="button"
+              className="details-back-button"
+              onClick={() => navigate(-1)}
+              disabled={loading}
+            >
+              <ArrowLeft size={14} />
+              Go back
+            </button>
+
             <button
               type="button"
               className="details-submit"
@@ -150,21 +176,12 @@ function BasicDetails() {
                 </>
               )}
             </button>
-
-            <button
-              type="button"
-              className="details-back-button"
-              onClick={() => navigate(-1)}
-            >
-              <ArrowLeft size={14} />
-              Go back
-            </button>
           </div>
 
-          <div className="details-card-footer">
+          <footer className="details-card-footer">
             <ShieldCheck size={15} />
-            You can modify your role settings anytime later
-          </div>
+            <span>You can modify your role settings anytime later</span>
+          </footer>
         </section>
       </div>
     </main>
