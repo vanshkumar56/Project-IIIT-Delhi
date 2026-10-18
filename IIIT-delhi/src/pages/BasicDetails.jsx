@@ -64,7 +64,7 @@ function BasicDetails() {
       <div className="details-modal-container">
         <div className="details-side-banner">
           <img
-            src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80"
+            src="blob:https://chatgpt.com/56aad66c-0768-4824-8d5a-3f2c37ba355e"
             alt="Students collaborating"
             className="details-banner-img"
           />
