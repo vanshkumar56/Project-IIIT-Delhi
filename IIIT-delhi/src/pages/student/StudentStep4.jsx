@@ -1,4 +1,4 @@
-
+﻿
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -99,14 +99,32 @@ function getTechnologyDetails(name) {
 function StudentStep4() {
   const navigate = useNavigate();
 
-  const [skills, setSkills] = useState(() => {
-    try {
-      const saved = sessionStorage.getItem("uniskillsStudentTechnologies");
-      return saved ? JSON.parse(saved) : initialSkills;
-    } catch {
-      return initialSkills;
+ 
+const [skills, setSkills] = useState(() => {
+  try {
+    const saved = sessionStorage.getItem("uniskillsStudentTechnologies");
+
+    if (saved) {
+      return JSON.parse(saved);
     }
-  });
+
+    const profile = JSON.parse(
+      sessionStorage.getItem("uniskillsStudentSkills") || "{}"
+    );
+
+    if (profile.selectedSkills?.length) {
+      return profile.selectedSkills.map((name) => ({
+        name,
+        level: "Beginner",
+      }));
+    }
+
+    return initialSkills;
+  } catch {
+    return initialSkills;
+  }
+});
+
 
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
@@ -243,7 +261,7 @@ function StudentStep4() {
         <section className="student-tech-card">
           <div className="student-tech-eyebrow">
             <span />
-            STEP 3 · TECHNOLOGY PROFILE
+            STEP 3 Â· TECHNOLOGY PROFILE
           </div>
 
           <div className="student-tech-heading">
@@ -516,3 +534,4 @@ function StudentStep4() {
 }
 
 export default StudentStep4;
+

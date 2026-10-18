@@ -1,6 +1,8 @@
-
-import { useState } from "react";
+﻿import { useEffect, useState } from "react";
+import { getSkills } from "../../lib/skills";
 import { useNavigate } from "react-router-dom";
+import { useSession, useUser } from "@clerk/react";
+import { createSupabaseClient } from "../../lib/supabase";
 import {
   ArrowLeft,
   ArrowRight,
@@ -123,6 +125,9 @@ const experienceLevels = [
 
 function StudentStep3() {
   const navigate = useNavigate();
+  const { session } = useSession();
+  const { user } = useUser();
+  const getToken = (options) => session?.getToken(options);
 
   const [primaryPath, setPrimaryPath] = useState("Full Stack Developer");
   const [selectedInterests, setSelectedInterests] = useState([
@@ -134,6 +139,29 @@ function StudentStep3() {
   const [showCustomInterest, setShowCustomInterest] = useState(false);
   const [customInterest, setCustomInterest] = useState("");
   const [error, setError] = useState("");
+  
+const [skills, setSkills] = useState([]);
+const [selectedSkills, setSelectedSkills] = useState([]);
+const [skillsLoading, setSkillsLoading] = useState(true);
+const [skillsError, setSkillsError] = useState("");
+
+useEffect(() => {
+  getSkills()
+    .then((data) => setSkills(data))
+    .catch(() => {
+      setSkillsError("Unable to load skills. Please refresh the page.");
+    })
+    .finally(() => setSkillsLoading(false));
+}, []);
+
+const toggleSkill = (skillName) => {
+  setSelectedSkills((current) =>
+    current.includes(skillName)
+      ? current.filter((name) => name !== skillName)
+      : [...current, skillName]
+  );
+};
+
 
   const toggleInterest = (interest) => {
     setError("");
@@ -167,34 +195,58 @@ function StudentStep3() {
     setError("");
   };
 
-  const handleContinue = () => {
-    if (!primaryPath) {
-      setError("Please select your primary career path.");
-      return;
+  
+const handleContinue = async () => {
+  if (!primaryPath) {
+    setError("Please select your primary career path.");
+    return;
+  }
+
+  if (!experience) {
+    setError("Please select your experience level.");
+    return;
+  }
+
+  setError("");
+
+  const skillProfile = {
+    primaryPath,
+    secondaryInterests: selectedInterests,
+    selectedSkills,
+    experience,
+  };
+
+  try {
+    sessionStorage.setItem(
+      "uniskillsStudentSkills",
+      JSON.stringify(skillProfile)
+    );
+
+    if (!user) {
+      throw new Error("Clerk user is unavailable");
     }
 
-    if (!experience) {
-      setError("Please select your experience level.");
-      return;
-    }
+    const supabase = createSupabaseClient(getToken);
 
-    const skillProfile = {
-      primaryPath,
-      secondaryInterests: selectedInterests,
-      experience,
-    };
-
-    try {
-      sessionStorage.setItem(
-        "uniskillsStudentSkills",
-        JSON.stringify(skillProfile)
+    const { error: saveError } = await supabase
+      .from("profiles")
+      .upsert(
+        {
+          clerk_user_id: user.id,
+          full_name: user.fullName || "",
+        },
+        { onConflict: "clerk_user_id" }
       );
 
-      navigate("/student/step-4");
-    } catch {
-      setError("Unable to save your selections. Please try again.");
-    }
-  };
+    if (saveError) throw saveError;
+
+    navigate("/student/step-4");
+  } catch (err) {
+    console.error("Profile save failed:", err);
+    setError("Unable to save your profile. Please try again.");
+  }
+};
+
 
   return (
     <main className="student-skills-page">
@@ -230,7 +282,7 @@ function StudentStep3() {
         <section className="student-skills-card">
           <div className="student-skills-eyebrow">
             <span />
-            STEP 3 · PATHWAY SELECTION
+            STEP 3 Â· PATHWAY SELECTION
           </div>
 
           <div className="student-skills-heading">
@@ -395,9 +447,46 @@ function StudentStep3() {
             )}
           </section>
 
+
+
+<section className="student-skills-section">
+  <div className="student-skills-section-heading">
+    <h2>3. Choose Your Technical Skills</h2>
+    <small>{selectedSkills.length} selected</small>
+  </div>
+
+  <p className="student-skills-helper">
+    Select skills from the UniSkills database.
+  </p>
+
+  {skillsLoading && <p>Loading skills...</p>}
+
+  {skillsError && <p role="alert">{skillsError}</p>}
+
+  {!skillsLoading && !skillsError && (
+    <div className="student-skills-interest-list">
+      {skills.map((skill) => {
+        const selected = selectedSkills.includes(skill.name);
+
+        return (
+          <button
+            key={skill.id}
+            type="button"
+            className={`student-skills-interest ${selected ? "selected" : ""}`}
+            aria-pressed={selected}
+            onClick={() => toggleSkill(skill.name)}
+          >
+            {selected && <Check size={11} />}
+            {skill.name}
+          </button>
+        );
+      })}
+    </div>
+  )}
+</section>
           <section className="student-skills-section">
             <div className="student-skills-section-heading">
-              <h2>3. Current Experience Level in Primary Path</h2>
+              <h2>4. Current Experience Level in Primary Path</h2>
               <small>Calibrates challenge difficulty</small>
             </div>
 
@@ -492,3 +581,4 @@ function StudentStep3() {
 }
 
 export default StudentStep3;
+
